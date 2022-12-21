@@ -18,7 +18,7 @@ internal class Program
             Console.WriteLine(@"file=exhibitA-input.csv header=false filterDate=All");
             Console.WriteLine();
             Console.WriteLine("You can use diffrent parameters using this pattern:");
-            Console.WriteLine(@"[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-08]");
+            Console.WriteLine(@"[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=true filterDate=2016-08-08]");
             Console.WriteLine("--------------------------------------------------------");
             Console.WriteLine();
         }
