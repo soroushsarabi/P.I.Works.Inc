@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace P.I.Works.Inc
 
     internal class ExhibitEntityCollection : List<ExhibitEntity>
     {
+        public int FiltredDataCount { get; set; }
         public async Task<bool> ReadFromDelimitedString(char seperator, string row)
         {
             return await Task.Run(() =>
@@ -43,13 +45,17 @@ namespace P.I.Works.Inc
                         throw new Exception($"Parameter count failed. {row}");
                     }
 
-                    this.Add(new ExhibitEntity { PLAY_ID = Temp[0], SONG_ID = int.Parse(Temp[1]), CLIENT_ID = int.Parse(Temp[2]), PLAY_TS = Convert.ToDateTime(Temp[3]) });
+                    this.Add(new ExhibitEntity { PLAY_ID = Temp[0], SONG_ID = int.Parse(Temp[1]), CLIENT_ID = int.Parse(Temp[2]), PLAY_TS = DateTime.ParseExact(Temp[3].Split(' ')[0], "dd/MM/yyyy", CultureInfo.InvariantCulture) });
 
                     return true;
                 }
                 catch (Exception ex)
                 {
                     //call log function
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(row);
+                    Console.ForegroundColor = ConsoleColor.White;
 
                     return false;
                 }
@@ -62,7 +68,11 @@ namespace P.I.Works.Inc
             var FiltredData = this.ToList();
 
             if (filterDate != null)
+            {
                 FiltredData = this.Where(x => x.PLAY_TS.Date == filterDate.Value.Date).ToList();
+            }
+
+            FiltredDataCount = FiltredData.Count;
 
             var ClientsSongsDate = FiltredData.GroupBy(x => new { x.CLIENT_ID , x.SONG_ID , x.PLAY_TS.Date }).Select(x=>new {A=x.Key.CLIENT_ID , B=x.Key.SONG_ID , C=x.Key.Date , D=x.Count()}).ToList();
 
@@ -77,7 +87,7 @@ namespace P.I.Works.Inc
                 distributions.Add(new DistributionDistinct { DISTINCT_PLAY_COUNT = item.UCli , CLIENT_COUNT= item.UC });
             }
 
-            var t = FiltredData.Where(x => x.CLIENT_ID == 249).ToList();
+// var t = FiltredData.Where(x => x.CLIENT_ID == 249).ToList();
 
             return distributions;
         }

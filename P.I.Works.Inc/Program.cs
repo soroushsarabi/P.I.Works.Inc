@@ -1,5 +1,6 @@
 ﻿using P.I.Works.Inc;
 using System.Diagnostics;
+using System.Globalization;
 
 internal class Program
 {
@@ -9,66 +10,64 @@ internal class Program
 
         var FilePath = "exhibitA-input.csv";
         var Header = true;
-        DateTime? FilterDate = null;
+        DateTime? FilterDate = DateTime.Parse("2016-08-10", CultureInfo.InvariantCulture);
 
+        Console.WriteLine("Defalut values are:");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine(@"file=exhibitA-input.csv header=True filterDate=2016-08-10");
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine();
+        Console.WriteLine("You can use diffrent parameters using this pattern:");
+        Console.WriteLine(@"[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=true filterDate=2016-08-10|All]");
+        Console.WriteLine("--------------------------------------------------------");
+        Console.WriteLine();
 
-        if ( args.Length == 0)
+        if (args.Any(x => x.StartsWith("file")))
         {
-            Console.WriteLine("Defalut values are:");
-            Console.WriteLine(@"file=exhibitA-input.csv header=false filterDate=All");
-            Console.WriteLine();
-            Console.WriteLine("You can use diffrent parameters using this pattern:");
-            Console.WriteLine(@"[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=true filterDate=2016-08-08]");
-            Console.WriteLine("--------------------------------------------------------");
-            Console.WriteLine();
+            FilePath = args.First(x => x.StartsWith("file")).Split('=')[1].Split('=')[1];
         }
-        else
+
+        if (!File.Exists(FilePath))
         {
-            if (args.Any(x=>x.StartsWith("file")))
+            Console.WriteLine(@"Missing file path argument or file does not exists[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-10|All]");
+
+            return;
+        }
+
+        if (args.Any(x => x.StartsWith("header")))
+        {
+            try
             {
-                FilePath = args[0].Split('=')[1];
-
-                if (!File.Exists(FilePath))
-                {
-                    Console.WriteLine(@"Missing file path argument or file does not exists[Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-8]");
-
-                    return;
-                }
+                Header = Convert.ToBoolean(args.First(x => x.StartsWith("header")).Split('=')[1]);
             }
-            else
+            catch
             {
-                Console.WriteLine(@"Missing file path argument [Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-8]""");
+                Console.WriteLine(@"Wrong format of header argument [Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-10|All]");
 
                 return;
             }
+        }
 
-            if (args.Any(x => x.StartsWith("header")))
+        if (args.Any(x => x.ToLower().StartsWith("filterdate")))
+        {
+
+            try
             {
-                try
+                if (args.First(x => x.ToLower().StartsWith("filterdate")).Split('=')[1].ToLower() == "all")
                 {
-                    Header = Convert.ToBoolean(args[1].Split('=')[1]);
+                    FilterDate = null;
                 }
-                catch
-                {
-                    Console.WriteLine(@"Wrong format of header argument [Sample:: P.I.Works.Inc.exe file=c:\data.csv header=false filterDate=2016-08-8]");
-
-                    return;
-                }
+                else
+                    FilterDate = Convert.ToDateTime(args.First(x => x.ToLower().StartsWith("filterdate")).Split('=')[1]);
             }
-            if (args.Any(x => x.StartsWith("filterDate")))
+            catch
             {
-                try
-                {
-                    FilterDate = Convert.ToDateTime(args[2].Split('=')[1]);
-                }
-                catch
-                {
-                    Console.WriteLine(@"Wrong format of filterDate argument [Sample:: P.I.Works.Inc.exe file:c:\data.csv header:false filterDate:2016-08-8]");
+                Console.WriteLine(@"Wrong format of filterDate argument [Sample:: P.I.Works.Inc.exe file:c:\data.csv header:false filterDate:2016-08-10|All]");
 
-                    return;
-                }
+                return;
             }
         }
+
 
         ExhibitEntityCollection exhibitEntities = new ExhibitEntityCollection();
 
@@ -92,29 +91,40 @@ internal class Program
                 counter++;
 
 #if DEBUG
-                if (counter == 10000)
+                if (counter == 1000)
                     break;
 #endif
             }
-
-            Console.WriteLine($"Finish reading {counter} rows from flat file in {stopwatch.Elapsed}.");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Finish reading {counter} rows from flat file in [{stopwatch.Elapsed}].");
+            Console.ForegroundColor = ConsoleColor.White;
 
             stopwatch.Reset();
 
             stopwatch.Start();
 
+            Console.WriteLine();
+
             Console.WriteLine("Strat processing data...");
 
             var Result = exhibitEntities.DistributionDistinctSongPlay(FilterDate);
 
-            Console.WriteLine($"Finish processing rows in {stopwatch.Elapsed}.");
+            var DisplayDate = FilterDate.HasValue ? " for date " + FilterDate.Value.ToLongDateString() : "";
 
-            using (StreamWriter writer = new StreamWriter("result.csv"))
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Finish processing {exhibitEntities.FiltredDataCount} rows in [{stopwatch.Elapsed}]{DisplayDate}.");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            var FileName = $"result-{DateTime.Now.Ticks}.csv";
+
+            using (StreamWriter writer = new StreamWriter(FileName))
             {
                 writer.WriteLine(Result);
             }
 
-            Console.WriteLine($"Result is saving as result.csv.");
+            Console.WriteLine();
+
+            Console.WriteLine($"Result is saving as {FileName}.");
         }
     }
 }
