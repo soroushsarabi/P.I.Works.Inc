@@ -7,4 +7,22 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="bin\Debug\**" />
+    <EmbeddedResource Remove="bin\Debug\**" />
+    <None Remove="bin\Debug\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Release\net6.0\P.I.Works.Inc.deps.json" />
+    <Content Include="bin\Release\net6.0\P.I.Works.Inc.runtimeconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Release\net6.0\exhibitA-input.csv" />
+    <None Include="bin\Release\net6.0\P.I.Works.Inc.dll" />
+    <None Include="bin\Release\net6.0\P.I.Works.Inc.exe" />
+    <None Include="bin\Release\net6.0\P.I.Works.Inc.pdb" />
+  </ItemGroup>
+
 </Project>
